@@ -31,5 +31,9 @@ describe("Scope test", function() {
 
             expect(listenerFn).toHaveBeenCalled();
         });
+
+        it("calls the watch function with a scope as an argument", function() {
+            this.fail("not implemeneted yet.");
+        });
     });
 });
