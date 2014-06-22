@@ -12,14 +12,14 @@ describe("Scope test", function() {
     });
 
 
-    describe("digest", function() {
+    describe("digestOnce", function() {
         var scope;
 
         beforeEach(function() {
             scope = new Scope();
         });
 
-        it("calls the listener function of a watch on first $digest", function() {
+        it("calls the listener function of a watch on first $$digestOnce", function() {
             var watchFn = function() {
                 return 'wat';
             };
@@ -27,7 +27,7 @@ describe("Scope test", function() {
 
             scope.$watch(watchFn, listenerFn);
 
-            scope.$digest();
+            scope.$$digestOnce();
 
             expect(listenerFn).toHaveBeenCalled();
         });
@@ -37,7 +37,7 @@ describe("Scope test", function() {
             var listenerFn = function() {};
 
             scope.$watch(watchFn, listenerFn);
-            scope.$digest();
+            scope.$$digestOnce();
 
             expect(watchFn).toHaveBeenCalledWith(scope);
         });
@@ -57,16 +57,16 @@ describe("Scope test", function() {
 
             expect(scope.counter).toBe(0);
 
-            scope.$digest();
+            scope.$$digestOnce();
             expect(scope.counter).toBe(1);
 
-            scope.$digest();
+            scope.$$digestOnce();
             expect(scope.counter).toBe(1);
 
             scope.someValue = 'b';
             expect(scope.counter).toBe(1);
 
-            scope.$digest();
+            scope.$$digestOnce();
             expect(scope.counter).toBe(2);
         });
 
@@ -78,7 +78,7 @@ describe("Scope test", function() {
                 return scope.someValue;
             }, listenerFn);
 
-            scope.$digest();
+            scope.$$digestOnce();
 
             expect(listenerFn).toHaveBeenCalled();
         });
@@ -94,9 +94,48 @@ describe("Scope test", function() {
                     oldValueGiven = oldValue;
                 }
             );
-            scope.$digest();
+            scope.$$digestOnce();
             expect(oldValueGiven).toBe(123);
         });
 
+        it("may have watcher that dont have a listener function", function() {
+            var watchFn = jasmine.createSpy();
+            scope.$watch(watchFn);
+
+            scope.$$digestOnce();
+
+            expect(watchFn).toHaveBeenCalled();
+        });
+
+        it("triggers chained watchers in the same digestOnce", function() {
+            scope.name = "Jane";
+
+            scope.$watch(
+                function(scope) {
+                    return scope.nameUpper;
+                },
+                function(newValue, oldValue, scope) {
+                    scope.initials = newValue && newValue.substr(0, 1) + ".";
+                }
+            );
+
+            scope.$watch(
+                function(scope) {
+                    return scope.name;
+                },
+                function(newValue, oldValue, scope) {
+                    scope.nameUpper = newValue[0].toUpperCase();
+                }
+            );
+
+            scope.$digest();
+
+            expect(scope.initials).toBe("J.");
+
+            scope.name = "bob";
+            scope.$digest();
+
+            expect(scope.initials).toBe("B.");
+        });
     });
 });
