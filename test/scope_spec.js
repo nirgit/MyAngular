@@ -137,5 +137,32 @@ describe("Scope test", function() {
 
             expect(scope.initials).toBe("B.");
         });
+
+        it("gives up on the watches after 10 unstable attempts", function() {
+            scope.number = 1;
+
+            scope.$watch(
+                function(scope) {
+                    return scope.number;
+                },
+                function(newValue, oldValue, scope) {
+                    scope.number += 2;
+                }
+            );
+
+            scope.$watch(
+                function(scope) {
+                    return scope.number;
+                },
+                function(newValue, oldValue, scope) {
+                    scope.number += 3;
+                }
+            );
+
+            expect((function() {
+                scope.$digest();
+            })).toThrow();
+
+        });
     });
 });
