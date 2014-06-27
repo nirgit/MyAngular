@@ -14,11 +14,13 @@ Scope.prototype.$watch = function(watchFn, listenerFn) {
         last: initWatchValue
     }
     this.$$watchers.push(watcher);
+    this.$$lastDirtyWatch = null;
 };
 
 Scope.prototype.$digest = function() {
     var TTL = 10;
     var dirty = true;
+    this.$$lastDirtyWatch = null;
     do {
         dirty = this.$$digestOnce();
         TTL--;
@@ -35,9 +37,12 @@ Scope.prototype.$$digestOnce = function() {
         newValue = watcher.watchFn(this);
         oldValue = watcher.last;
         if (newValue !== oldValue) {
+            this.$$lastDirtyWatch = watcher;
             watcher.last = newValue;
             watcher.listenerFn(newValue, oldValue === initWatchValue ? newValue : oldValue, this);
             dirty = true;
+        } else if (this.$$lastDirtyWatch === watcher) {
+            return false;
         }
     }
     return dirty;
