@@ -226,5 +226,25 @@ describe("Scope test", function() {
             expect(scope.counter).toBe(2);
         });
 
+        it("should handle NaN correctly.", function() {
+            scope.counter = 0;
+            scope.value = 0 / 0; // This is NaN
+
+            scope.$watch(
+                function(scope) {
+                    return scope.value;
+                },
+                function(newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+        });
+
     });
 });
