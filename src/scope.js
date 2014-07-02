@@ -59,3 +59,7 @@ Scope.prototype.$$areEqual = function(valueA, valueB, isValueEq) {
 
     }
 }
+
+Scope.prototype.$eval = function(expression, args) {
+    return expression(this, args);
+}

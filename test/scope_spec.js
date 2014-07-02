@@ -246,5 +246,24 @@ describe("Scope test", function() {
             expect(scope.counter).toBe(1);
         });
 
+        it("executes $eval'ed function and returns result", function() {
+            scope.value = 42;
+
+            var result = scope.$eval(function(scope) {
+                return scope.value;
+            });
+
+            expect(result).toBe(42);
+        });
+
+        it("passes the second $eval arg straight through", function() {
+            scope.value = 42;
+
+            var result = scope.$eval(function(scope, arg) {
+                return scope.value + arg;
+            }, 2);
+
+            expect(result).toBe(44);
+        });
     });
 });
