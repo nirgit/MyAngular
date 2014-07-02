@@ -306,7 +306,48 @@ describe("Scope test", function() {
             expect(scope.asyncEvaluatedImmediately).toBe(false);
         });
 
+        it("executes $evalAsynced functions even when not dirty", function() {
+            scope.aValue = [1, 2, 3];
+            scope.asyncEvaluatedTimes = 0;
+            scope.$watch(
+                function(scope) {
+                    if (scope.asyncEvaluatedTimes < 2) {
+                        scope.$evalAsync(function(scope) {
+                            scope.asyncEvaluatedTimes++;
+                        });
+                    }
+                    return scope.aValue;
+                },
+                function(newValue, oldValue, scope) {}
+            );
+            scope.$digest();
+            expect(scope.asyncEvaluatedTimes).toBe(2);
+        });
 
+        it("has a $$phase field which describes the current $digest phase", function() {
+            scope.aValue = [1, 2, 3];
+            scope.phaseInWatchFunction = undefined;
+            scope.phaseInListenerFunction = undefined;
+            scope.phaseInApplyFunction = undefined;
+
+            scope.$watch(
+                function(scope) {
+                    scope.phaseInWatchFunction = scope.$$phase;
+                    return scope.aValue;
+                },
+                function(newValue, oldValue, scope) {
+                    scope.phaseInListenerFunction = scope.$$phase;
+                });
+
+            scope.$apply(function(scope) {
+                scope.phaseInApplyFunction = scope.$$phase;
+            });
+
+            expect(scope.phaseInWatchFunction).toBe("$digest");
+            expect(scope.phaseInListenerFunction).toBe("$digest");
+            expect(scope.phaseInApplyFunction).toBe("$apply");
+
+        });
 
     });
 });
