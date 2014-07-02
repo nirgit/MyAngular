@@ -84,6 +84,14 @@ Scope.prototype.$apply = function(expression) {
 }
 
 Scope.prototype.$evalAsync = function(expr) {
+    if (!this.$$phase && !this.$$asyncQueue.length) {
+        var self = this;
+        setTimeout(function() {
+            if (self.$$asyncQueue.length) {
+                self.$digest();
+            }
+        }, 0);
+    }
     this.$$asyncQueue.push({
         scope: this,
         expression: expr
