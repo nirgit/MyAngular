@@ -5,6 +5,7 @@ function initWatchValue() {};
 
 function Scope() {
     this.$$watchers = [];
+    this.$$asyncQueue = [];
 };
 
 Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
@@ -23,6 +24,10 @@ Scope.prototype.$digest = function() {
     var dirty = true;
     this.$$lastDirtyWatch = null;
     do {
+        while (this.$$asyncQueue.length) {
+            var asyncTask = this.$$asyncQueue.shift();
+            asyncTask.scope.$eval(asyncTask.expression);
+        }
         dirty = this.$$digestOnce();
         TTL--;
         if (dirty && !TTL) {
@@ -62,4 +67,20 @@ Scope.prototype.$$areEqual = function(valueA, valueB, isValueEq) {
 
 Scope.prototype.$eval = function(expression, args) {
     return expression(this, args);
+}
+
+Scope.prototype.$apply = function(expression) {
+    try {
+        return this.$eval(expression);
+    } finally {
+        this.$digest();
+    }
+}
+
+Scope.prototype.$evalAsync = function(expr) {
+    this.$$asyncQueue.push({
+        scope: this,
+        expression: expr
+    });
+
 }
