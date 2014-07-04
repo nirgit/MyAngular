@@ -48,16 +48,20 @@ Scope.prototype.$digest = function() {
 Scope.prototype.$$digestOnce = function() {
     var oldValue, newValue, dirty = false;
     for (var i = 0; i < this.$$watchers.length; i++) {
-        var watcher = this.$$watchers[i];
-        newValue = watcher.watchFn(this);
-        oldValue = watcher.last;
-        if (!this.$$areEqual(newValue, oldValue, watcher.valueEq)) {
-            this.$$lastDirtyWatch = watcher;
-            watcher.last = (watcher.valueEq ? _.cloneDeep(newValue) : newValue);
-            watcher.listenerFn(newValue, oldValue === initWatchValue ? newValue : oldValue, this);
-            dirty = true;
-        } else if (this.$$lastDirtyWatch === watcher) {
-            return false;
+        try {
+            var watcher = this.$$watchers[i];
+            newValue = watcher.watchFn(this);
+            oldValue = watcher.last;
+            if (!this.$$areEqual(newValue, oldValue, watcher.valueEq)) {
+                this.$$lastDirtyWatch = watcher;
+                watcher.last = (watcher.valueEq ? _.cloneDeep(newValue) : newValue);
+                watcher.listenerFn(newValue, oldValue === initWatchValue ? newValue : oldValue, this);
+                dirty = true;
+            } else if (this.$$lastDirtyWatch === watcher) {
+                return false;
+            }
+        } catch (e) {
+            console.log(e);
         }
     }
     return dirty;
